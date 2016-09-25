@@ -28,7 +28,7 @@ using OpenTidl.Transport;
 
 namespace OpenTidl.Methods
 {
-    public class OpenTidlSession
+    public partial class OpenTidlSession : IDisposable
     {
         #region properties
 
@@ -83,6 +83,8 @@ namespace OpenTidl.Methods
             return HandleResponse(await RestClient.Process<JsonList<TrackModel>>(
                 RestUtility.FormatUrl("/playlists/{uuid}/tracks", new { uuid = playlistUuid }), new
                 {
+                    offset = offset,
+                    limit = limit,
                     sessionId = SessionId,
                     countryCode = CountryCode
                 }, null, "GET"));
@@ -463,6 +465,16 @@ namespace OpenTidl.Methods
         private T HandleResponse<T>(RestResponse<T> response) where T : ModelBase
         {
             return this.OpenTidlClient.HandleResponse(response);
+        }
+
+        public void Dispose()
+        {
+            try
+            {
+                if (this.LoginResult != null)
+                    this.Logout().Sync(1000);
+            }
+            catch { }
         }
 
         #endregion
